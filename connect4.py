@@ -1,5 +1,5 @@
-from Tkinter import Tk, Button, Frame, Canvas
-from tkFont import Font
+# coding=UTF8
+from tkinter import Tk, Button, Frame, Canvas, font
 from copy import deepcopy
 from time import time
  
@@ -7,7 +7,7 @@ class Board:
  
   nodes = {}
  
-  def __init__(self,other=None):
+  def __init__(self, other = None):
     self.player = 'X'
     self.opponent = 'O'
     self.empty = '.'
@@ -16,47 +16,50 @@ class Board:
     self.fields = {}
     for y in range(self.height):
       for x in range(self.width):
-        self.fields[x,y] = self.empty
+        self.fields[x, y] = self.empty
     # copy constructor
     if other:
       self.__dict__ = deepcopy(other.__dict__)
  
-  def move(self,x):
+  def move(self, x):
     board = Board(self)
     for y in range(board.height):
-      if board.fields[x,y] == board.empty:
-        board.fields[x,y] = board.player
+      if board.fields[x, y] == board.empty:
+        board.fields[x, y] = board.player
         break
-    board.player,board.opponent = board.opponent,board.player
+    board.player, board.opponent = board.opponent, board.player
     return board
  
-  def __heuristic(self):
-    return self.__heuristic_score(self.player)-self.__heuristic_score(self.opponent)
+  def __heuristic(self, score):
+    score1 = score(self.player, winalg=self.__winlines, pos = self.__winpositions)
+    score2 = score(self.opponent, winalg = self.__winlines, pos = self.__winpositions)
+
+    return score1 - score2
  
-  def __heuristic_score(self, player):
-    lines = self.__winlines(player)
-    winpositions = self.__winpositions(lines,player)
+  def __heuristic_score(self, player, winalg, pos):
+    lines = winalg(player)
+    winpositions = pos(lines,player, winalg)
     score = 0
     for x in range(self.width):
       for y in range(self.height-1,0,-1):
-        win = winpositions.get("{0},{1}".format(x,y),False)
-        below = winpositions.get("{0},{1}".format(x,y-1),False)
+        win = winpositions.get("{0},{1}".format(x, y),False)
+        below = winpositions.get("{0},{1}".format(x, y-1),False)
         if win and below:
           score+=self.height-y*100
     for line in lines:
       pieces = 0
       height = []
-      for x,y in line:
-        if self.fields[x,y] == player:
+      for x, y in line:
+        if self.fields[x, y] == player:
           pieces = pieces + 1
-        elif self.fields[x,y] == self.empty:
+        elif self.fields[x, y] == self.empty:
           height.append(y)
       heightscore = self.height - int(sum(height) / float(len(height)))
-      score=score+pieces*heightscore
+      score = score+pieces*heightscore
     return score
  
-  def __winpositions(self, lines, player):
-    lines = self.__winlines(player)
+  def __winpositions(self, lines, player, win):
+    lines = win(player)
     winpositions = {}
     for line in lines:
       pieces = 0
@@ -78,7 +81,7 @@ class Board:
     for y in range(self.height):
       winning = []
       for x in range(self.width):
-        if self.fields[x,y] == player or self.fields[x,y] == self.empty:
+        if self.fields[x, y] == player or self.fields[x, y] == self.empty:
           winning.append((x,y))
           if len(winning) >= 4:
             lines.append(winning[-4:])
@@ -88,8 +91,8 @@ class Board:
     for x in range(self.width):
       winning = []
       for y in range(self.height):
-        if self.fields[x,y] == player or self.fields[x,y] == self.empty:
-          winning.append((x,y))
+        if self.fields[x,y] == player or self.fields[x, y] == self.empty:
+          winning.append((x, y))
           if len(winning) >= 4:
             lines.append(winning[-4:])
         else:
@@ -97,14 +100,14 @@ class Board:
     # diagonal
     winning = []
     for cx in range(self.width-1):
-      sx,sy = max(cx-2,0),abs(min(cx-2,0))
+      sx, sy = max(cx-2, 0),abs(min(cx-2, 0))
       winning = []
       for cy in range(self.height):
-        x,y = sx+cy,sy+cy
-        if x<0 or y<0 or x>=self.width or y>=self.height:
+        x, y = sx+cy, sy+cy
+        if x < 0 or y < 0 or x >= self.width or y >= self.height:
           continue
-        if self.fields[x,y] == player or self.fields[x,y] == self.empty:
-          winning.append((x,y))
+        if self.fields[x, y] == player or self.fields[x, y] == self.empty:
+          winning.append((x, y))
           if len(winning) >= 4:
             lines.append(winning[-4:])
         else:
@@ -112,14 +115,14 @@ class Board:
     # other diagonal
     winning = []
     for cx in range(self.width-1):
-      sx,sy = self.width-1-max(cx-2,0),abs(min(cx-2,0))
+      sx, sy = self.width-1-max(cx-2, 0),abs(min(cx-2, 0))
       winning = []
       for cy in range(self.height):
-        x,y = sx-cy,sy+cy
-        if x<0 or y<0 or x>=self.width or y>=self.height:
+        x, y = sx - cy, sy + cy
+        if x < 0 or y < 0 or x >= self.width or y >= self.height:
           continue
-        if self.fields[x,y] == player or self.fields[x,y] == self.empty:
-          winning.append((x,y))
+        if self.fields[x, y] == player or self.fields[x, y] == self.empty:
+          winning.append((x, y))
           if len(winning) >= 4:
             lines.append(winning[-4:])
         else:
@@ -127,14 +130,14 @@ class Board:
     # return
     return lines
  
-  def __iterative_deepening(self,think):
+  def __iterative_deepening(self, think, alg):
     g = (3,None)
     start = time()
     for d in range(1,10):
-      g = self.__mtdf(g, d)
-      if time()-start>think:
+      g = alg(g, d)
+      if time() - start > think:
         break
-    return g;
+    return g
  
   def __mtdf(self, g, d):
     upperBound = +1000
@@ -154,39 +157,40 @@ class Board:
         lowerBound = g[0]
     return best
  
+  # recursive function
   def __minimax(self, player, depth, alpha, beta):
-    lower = Board.nodes.get(str(self)+str(depth)+'lower',None)
-    upper = Board.nodes.get(str(self)+str(depth)+'upper',None)
+    lower = Board.nodes.get(str(self)+str(depth)+'lower', None)
+    upper = Board.nodes.get(str(self)+str(depth)+'upper', None)
     if lower != None:
       if lower >= beta:
-        return (lower,None)
+        return (lower, None)
       alpha = max(alpha,lower)
     if upper != None:
       if upper <= alpha:
-        return (upper,None)
-      beta = max(beta,upper)
+        return (upper, None)
+      beta = max(beta, upper)
     if self.won():
       if player:
-        return (-999,None)
+        return (-999, None)
       else:
-        return (+999,None)
+        return (+999, None)
     elif self.tied():
-      return (0,None)
-    elif depth==0:
-      return (self.__heuristic(),None)
+      return (0, None)
+    elif depth == 0:
+      return (self.__heuristic(self.__heuristic_score), None)
     elif player:
-      best = (alpha,None)
+      best = (alpha, None)
       for x in range(self.width):
-        if self.fields[x,self.height-1]==self.empty:
-          value = self.move(x).__minimax(not player,depth-1,best[0],beta)[0]
-          if value>best[0]:
-            best = value,x
-          if value>beta:
+        if self.fields[x, self.height-1] == self.empty:
+          value = self.move(x).__minimax(not player, depth-1, best[0], beta)[0]
+          if value > best[0]:
+            best = value, x
+          if value > beta:
             break
     else:
-      best = (beta,None)
+      best = (beta, None)
       for x in range(self.width):
-        if self.fields[x,self.height-1]==self.empty:
+        if self.fields[x, self.height-1] == self.empty:
           value = self.move(x).__minimax(not player,depth-1,alpha,best[0])[0]
           if value<best[0]:
             best = value,x
@@ -201,11 +205,11 @@ class Board:
     return best
  
   def best(self):
-    return self.__iterative_deepening(2)[1]
+    return self.__iterative_deepening(2, self.__mtdf,)[1]
  
   def tied(self):
-    for (x,y) in self.fields:
-      if self.fields[x,y]==self.empty:
+    for (x, y) in self.fields:
+      if self.fields[x, y] == self.empty:
         return False
     return True
  
@@ -214,8 +218,8 @@ class Board:
     for y in range(self.height):
       winning = []
       for x in range(self.width):
-        if self.fields[x,y] == self.opponent:
-          winning.append((x,y))
+        if self.fields[x, y] == self.opponent:
+          winning.append((x, y))
           if len(winning) == 4:
             return winning
         else:
@@ -224,8 +228,8 @@ class Board:
     for x in range(self.width):
       winning = []
       for y in range(self.height):
-        if self.fields[x,y] == self.opponent:
-          winning.append((x,y))
+        if self.fields[x, y] == self.opponent:
+          winning.append((x, y))
           if len(winning) == 4:
             return winning
         else:
@@ -233,11 +237,11 @@ class Board:
     # diagonal
     winning = []
     for cx in range(self.width-1):
-      sx,sy = max(cx-2,0),abs(min(cx-2,0))
+      sx, sy = max(cx-2,0), abs(min(cx-2, 0))
       winning = []
       for cy in range(self.height):
-        x,y = sx+cy,sy+cy
-        if x<0 or y<0 or x>=self.width or y>=self.height:
+        x, y = sx + cy, sy + cy
+        if x < 0 or y < 0 or x >= self.width or y >= self.height:
           continue
         if self.fields[x,y] == self.opponent:
           winning.append((x,y))
@@ -248,13 +252,13 @@ class Board:
     # other diagonal
     winning = []
     for cx in range(self.width-1):
-      sx,sy = self.width-1-max(cx-2,0),abs(min(cx-2,0))
+      sx, sy = self.width - 1 - max(cx - 2, 0), abs(min(cx-2, 0))
       winning = []
       for cy in range(self.height):
         x,y = sx-cy,sy+cy
         if x<0 or y<0 or x>=self.width or y>=self.height:
           continue
-        if self.fields[x,y] == self.opponent:
+        if self.fields[x, y] == self.opponent:
           winning.append((x,y))
           if len(winning) == 4:
             return winning
@@ -267,16 +271,16 @@ class Board:
     string = ''
     for y in range(self.height):
       for x in range(self.width):
-        string+=' '+self.fields[self.width-1-x,self.height-1-y]
-      string+="\n"
+        string += ' ' + self.fields[self.width-1-x, self.height-1-y]
+      string += "\n"
     return string
  
   def __str__(self):
     string = ''
     for y in range(self.height):
       for x in range(self.width):
-        string+=' '+self.fields[x,self.height-1-y]
-      string+="\n"
+        string += ' ' + self.fields[x, self.height-1-y]
+      string += "\n"
     return string
  
 class GUI:
@@ -291,8 +295,8 @@ class GUI:
     self.tiles = {}
     for x in range(self.board.width):
       handler = lambda x=x: self.move(x)
-      button = Button(self.app, command=handler, font=Font(family="Helvetica", size=14), text=x+1)
-      button.grid(row=0, column=x, sticky="WE")
+      button = Button(self.app, command=handler, font=font.Font(family="Helvetica", size=14), text = x+1)
+      button.grid(row = 0, column = x, sticky = "WE")
       self.buttons[x] = button
     self.frame.grid(row=1, column=0, columnspan=self.board.width)
     for x,y in self.board.fields:
@@ -300,16 +304,16 @@ class GUI:
       tile.grid(row=self.board.height-1-y, column=x)
       self.tiles[x,y] = tile
     handler = lambda: self.reset()
-    self.restart = Button(self.app, command=handler, text='reset')
-    self.restart.grid(row=2, column=0, columnspan=self.board.width, sticky="WE")
+    self.restart = Button(self.app, command = handler, text = 'reset')
+    self.restart.grid(row = 2, column = 0, columnspan = self.board.width, sticky = "WE")
     self.update()
  
   def reset(self):
     self.board = Board()
     self.update()
  
-  def move(self,x):
-    self.app.config(cursor="watch")
+  def move(self, x):
+    self.app.config(cursor = "watch")
     self.app.update()
     self.board = self.board.move(x)
     self.update()
