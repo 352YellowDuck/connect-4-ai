@@ -1,4 +1,3 @@
-# coding=UTF8
 from tkinter import Tk, Button, Frame, Canvas, font
 from copy import deepcopy
 from time import time
@@ -30,9 +29,9 @@ class Board:
     board.player, board.opponent = board.opponent, board.player
     return board
  
-  def __heuristic(self, score):
-    score1 = score(self.player, winalg=self.__winlines, pos = self.__winpositions)
-    score2 = score(self.opponent, winalg = self.__winlines, pos = self.__winpositions)
+  def __heuristic(self, score, positions):
+    score1 = score(self.player, winalg = self.__winlines, pos = positions)
+    score2 = score(self.opponent, winalg = self.__winlines, pos = positions)
 
     return score1 - score2
  
@@ -149,7 +148,7 @@ class Board:
       else:
         beta = g[0]
       g = self.__minimax(True, d, beta-1, beta)
-      if g[1]!=None:
+      if g[1] != None:
         best = g
       if g[0] < beta:
         upperBound = g[0]
@@ -177,7 +176,7 @@ class Board:
     elif self.tied():
       return (0, None)
     elif depth == 0:
-      return (self.__heuristic(self.__heuristic_score), None)
+      return (self.__heuristic(self.__heuristic_score, self.__winpositions), None)
     elif player:
       best = (alpha, None)
       for x in range(self.width):
@@ -294,7 +293,7 @@ class GUI:
     self.frame = Frame(self.app, borderwidth=1, relief="raised")
     self.tiles = {}
     for x in range(self.board.width):
-      handler = lambda x=x: self.move(x)
+      handler = lambda x=x: self.move(x) #lambda
       button = Button(self.app, command=handler, font=font.Font(family="Helvetica", size=14), text = x+1)
       button.grid(row = 0, column = x, sticky = "WE")
       self.buttons[x] = button
@@ -303,7 +302,7 @@ class GUI:
       tile = Canvas(self.frame, width=60, height=50, bg="navy", highlightthickness=0)
       tile.grid(row=self.board.height-1-y, column=x)
       self.tiles[x,y] = tile
-    handler = lambda: self.reset()
+    handler = lambda: self.reset() #lambda
     self.restart = Button(self.app, command = handler, text = 'reset')
     self.restart.grid(row = 2, column = 0, columnspan = self.board.width, sticky = "WE")
     self.update()
@@ -318,7 +317,7 @@ class GUI:
     self.board = self.board.move(x)
     self.update()
     move = self.board.best()
-    if move!=None:
+    if move != None:
       self.board = self.board.move(move)
       self.update()
     self.app.config(cursor="")
