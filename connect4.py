@@ -63,17 +63,18 @@ class Board:
     for line in lines:
       pieces = 0
       empty = None
-      for x,y in line:
-        if self.fields[x,y] == player:
-          pieces = pieces + 1
-        elif self.fields[x,y] == self.empty:
+      for x, y in line:
+        if self.fields[x, y] == player:
+          pieces += 1
+        elif self.fields[x, y] == self.empty:
           if not empty == None:
             break
           empty = (x,y)
-      if pieces==3:
-        winpositions["{0},{1}".format(x,y)]=True
+      if pieces == 3:
+        winpositions["{0},{1}".format(x,y)] = True
     return winpositions
  
+  # find routes for winning lines
   def __winlines(self, player):
     lines = []
     # horizontal
@@ -129,15 +130,17 @@ class Board:
     # return
     return lines
  
-  def __iterative_deepening(self, think, alg):
+  # gives ai time to think, wider range = more time to think
+  def __iterative_deepening(self, think, prune):
     g = (3,None)
     start = time()
     for d in range(1,10):
-      g = alg(g, d)
+      g = prune(g, d)
       if time() - start > think:
         break
     return g
  
+  # bounds are random, abstractively infinity.
   def __mtdf(self, g, d):
     upperBound = +1000
     lowerBound = -1000
@@ -156,7 +159,9 @@ class Board:
         lowerBound = g[0]
     return best
  
-  # recursive function
+  # recursive function that is a wide search window. 
+  # alpha-beta pruning: keeps best and worse values (min-max)
+  # bounds are random, abstractively infinity.
   def __minimax(self, player, depth, alpha, beta):
     lower = Board.nodes.get(str(self)+str(depth)+'lower', None)
     upper = Board.nodes.get(str(self)+str(depth)+'upper', None)
@@ -190,7 +195,7 @@ class Board:
       best = (beta, None)
       for x in range(self.width):
         if self.fields[x, self.height-1] == self.empty:
-          value = self.move(x).__minimax(not player,depth-1,alpha,best[0])[0]
+          value = self.move(x).__minimax(not player, depth-1, alpha, best[0])[0]
           if value<best[0]:
             best = value,x
           if alpha>value:
@@ -203,15 +208,20 @@ class Board:
       Board.nodes[self.__mirror()+str(depth)+"lower"] = best[0]
     return best
  
+  # calls alpha-beta pruning min max algorithm (__mtdf) 
+  # given time to think (__iterative_deepening)
+  # to get the best
   def best(self):
     return self.__iterative_deepening(2, self.__mtdf,)[1]
  
+  # if all slots are not empty, then the game is tied
   def tied(self):
     for (x, y) in self.fields:
       if self.fields[x, y] == self.empty:
         return False
     return True
  
+  # check if someone has won (length of list is 4)
   def won(self):
     # horizontal
     for y in range(self.height):
