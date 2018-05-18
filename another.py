@@ -1,8 +1,8 @@
 import sys
 import numpy
 
-BOARD_SIZE_X = 7
-BOARD_SIZE_Y = 6
+BOARD_WIDTH = 7
+BOARD_HEIGHT = 6
 SEARCH_DEPTH = 4
 
 COMPUTER_PLAYER = 1
@@ -13,37 +13,38 @@ HUMAN_PLAYER = -1
 # the move and score of each call.
 #
 
-def minimax(gameState, depth, player, opponent):
-    availableMoves = BOARD_SIZE_X
-    for i in range(0, BOARD_SIZE_X):
+def minimax(gameState, depth, player, opponent, scoreEvalAlg):
+    availableMoves = BOARD_WIDTH
+    for i in range(0, BOARD_WIDTH):
         if gameState[0][i] != 0:
             availableMoves -= 1
 
     if depth == 0 or availableMoves == 0:
-        score = evaluateScore(gameState, player, opponent)
+        score = scoreEvalAlg(gameState, player, opponent)
         return None, score
 
     bestScore = None
     bestMove = None
 
-    for i in range(0, BOARD_SIZE_X):
+    for i in range(0, BOARD_WIDTH):
         # If moves cannot be made on column, skip it
         if gameState[0][i] != 0:
             continue
 
         currentMove = [0, i]
 
-        for j in range(0, BOARD_SIZE_Y - 1):
+        for j in range(0, BOARD_HEIGHT - 1):
             if gameState[j + 1][i] != 0:
                 gameState[j][i] = player
                 currentMove[0] = j
                 break
-            elif j == BOARD_SIZE_Y - 2:
+            elif j == BOARD_HEIGHT - 2:
                 gameState[j+1][i] = player
                 currentMove[0] = j+1
 
         # Recursive minimax call, with reduced depth
-        move, score = minimax(gameState, depth - 1, opponent, player)
+        move, score = minimax(gameState, depth - 1,
+                              opponent, player, scoreEvalAlg)
 
         gameState[currentMove[0]][currentMove[1]] = 0
 
@@ -64,6 +65,7 @@ def minimax(gameState, depth, player, opponent):
 # for each empty slot that could grant a player victory.
 #
 
+
 def evaluateScore(gameState, player, opponent):
     # Return infinity if a player has won in the given board
     score = checkWin(gameState)
@@ -75,8 +77,8 @@ def evaluateScore(gameState, player, opponent):
     else:
         score = 0
 
-    for i in range(0, BOARD_SIZE_Y):
-        for j in range(0, BOARD_SIZE_X):
+    for i in range(0, BOARD_HEIGHT):
+        for j in range(0, BOARD_WIDTH):
             if gameState[i][j] == 0:
                 score += scoreOfCoordinate(gameState, i, j, player, opponent)
 
@@ -88,68 +90,69 @@ def evaluateScore(gameState, player, opponent):
 # found vertically, horizontally or in both diagonals.
 #
 
+
 def scoreOfCoordinate(gameState, i, j, player, opponent):
     score = 0
 
     # Check vertical line
     score += scoreOfLine(
-                     gameState=gameState,
-                     i=i,
-                     j=j,
-                     rowIncrement=-1,
-                     columnIncrement=0,
-                     firstRowCondition=-1,
-                     secondRowCondition=BOARD_SIZE_Y,
-                     firstColumnCondition=None,
-                     secondColumnCondition=None,
-                     player=player,
-                     opponent=opponent
-                 )
+        gameState=gameState,
+        i=i,
+        j=j,
+        rowIncrement=-1,
+        columnIncrement=0,
+        firstRowCondition=-1,
+        secondRowCondition=BOARD_HEIGHT,
+        firstColumnCondition=None,
+        secondColumnCondition=None,
+        player=player,
+        opponent=opponent
+    )
 
     # Check horizontal line
     score += scoreOfLine(
-                     gameState=gameState,
-                     i=i,
-                     j=j,
-                     rowIncrement=0,
-                     columnIncrement=-1,
-                     firstRowCondition=None,
-                     secondRowCondition=None,
-                     firstColumnCondition=-1,
-                     secondColumnCondition=BOARD_SIZE_X,
-                     player=player,
-                     opponent=opponent
-                 )
+        gameState=gameState,
+        i=i,
+        j=j,
+        rowIncrement=0,
+        columnIncrement=-1,
+        firstRowCondition=None,
+        secondRowCondition=None,
+        firstColumnCondition=-1,
+        secondColumnCondition=BOARD_WIDTH,
+        player=player,
+        opponent=opponent
+    )
 
     # Check diagonal /
     score += scoreOfLine(
-                     gameState=gameState,
-                     i=i,
-                     j=j,
-                     rowIncrement=-1,
-                     columnIncrement=1,
-                     firstRowCondition=-1,
-                     secondRowCondition=BOARD_SIZE_Y,
-                     firstColumnCondition=BOARD_SIZE_X,
-                     secondColumnCondition=-1,
-                     player=player,
-                     opponent=opponent
-                 )
+        gameState=gameState,
+        i=i,
+        j=j,
+        rowIncrement=-1,
+        columnIncrement=1,
+        firstRowCondition=-1,
+        secondRowCondition=BOARD_HEIGHT,
+        firstColumnCondition=BOARD_WIDTH,
+        secondColumnCondition=-1,
+        player=player,
+        opponent=opponent
+    )
 
     # Check diagonal \
     score += scoreOfLine(
-                     gameState=gameState,
-                     i=i,
-                     j=j,
-                     rowIncrement=-1,
-                     columnIncrement=-1,
-                     firstRowCondition=-1,
-                     secondRowCondition=BOARD_SIZE_Y,
-                     firstColumnCondition=-1,
-                     secondColumnCondition=BOARD_SIZE_X,
-                     player=player,
-                     opponent=opponent
-                 )
+        gameState=gameState,
+        i=i,
+        j=j,
+        rowIncrement=-1,
+        columnIncrement=-1,
+        firstRowCondition=-1,
+        secondRowCondition=BOARD_HEIGHT,
+        firstColumnCondition=-1,
+        secondColumnCondition=BOARD_WIDTH,
+        player=player,
+        opponent=opponent
+    )
 
     return score
 
@@ -157,6 +160,7 @@ def scoreOfCoordinate(gameState, i, j, player, opponent):
 # Method that searches through a line (vertical, horizontal or
 # diagonal) to get the heuristic value of the given coordinate.
 #
+
 
 def scoreOfLine(
     gameState,
@@ -242,20 +246,21 @@ def scoreOfLine(
 # if any immediate wins or loses are present.
 #
 
-def bestMove(gameState, player, opponent):
-    for i in range(0, BOARD_SIZE_X):
+
+def bestMove(gameState, player, opponent, scoreEvalAlg):
+    for i in range(0, BOARD_WIDTH):
         # If moves cannot be made on column, skip it
         if gameState[0][i] != 0:
             continue
 
         currentMove = [0, i]
 
-        for j in range(0, BOARD_SIZE_Y - 1):
+        for j in range(0, BOARD_HEIGHT - 1):
             if gameState[j + 1][i] != 0:
                 gameState[j][i] = player
                 currentMove[0] = j
                 break
-            elif j == BOARD_SIZE_Y - 2:
+            elif j == BOARD_HEIGHT - 2:
                 gameState[j+1][i] = player
                 currentMove[0] = j+1
 
@@ -265,19 +270,19 @@ def bestMove(gameState, player, opponent):
         if winner == COMPUTER_PLAYER:
             return currentMove[1]
 
-    for i in range(0, BOARD_SIZE_X):
+    for i in range(0, BOARD_WIDTH):
         # If moves cannot be made on column, skip it
         if gameState[0][i] != 0:
             continue
 
         currentMove = [0, i]
 
-        for j in range(0, BOARD_SIZE_Y - 1):
+        for j in range(0, BOARD_HEIGHT - 1):
             if gameState[j + 1][i] != 0:
                 gameState[j][i] = opponent
                 currentMove[0] = j
                 break
-            elif j == BOARD_SIZE_Y - 2:
+            elif j == BOARD_HEIGHT - 2:
                 gameState[j+1][i] = opponent
                 currentMove[0] = j+1
 
@@ -287,13 +292,10 @@ def bestMove(gameState, player, opponent):
         if winner == HUMAN_PLAYER:
             return currentMove[1]
 
-    move, score = minimax(gameState, SEARCH_DEPTH, player, opponent)
+    move, score = minimax(gameState, SEARCH_DEPTH,
+                          player, opponent, scoreEvalAlg)
     return move[1]
 
-#
-# Method that verifies if the current board is in a winning state
-# for any player, returning infinity if that is the case.
-#
 
 def checkWin(gameState):
     current = 0
@@ -302,8 +304,8 @@ def checkWin(gameState):
     opponent_wins = 0
 
     # Check horizontal wins
-    for i in range(0, BOARD_SIZE_Y):
-        for j in range(0, BOARD_SIZE_X):
+    for i in range(0, BOARD_HEIGHT):
+        for j in range(0, BOARD_WIDTH):
             if currentCount == 0:
                 if gameState[i][j] != 0:
                     current = gameState[i][j]
@@ -334,8 +336,8 @@ def checkWin(gameState):
         currentCount = 0
 
     # Check vertical wins
-    for j in range(0, BOARD_SIZE_X):
-        for i in range(0, BOARD_SIZE_Y):
+    for j in range(0, BOARD_WIDTH):
+        for i in range(0, BOARD_HEIGHT):
             if currentCount == 0:
                 if gameState[i][j] != 0:
                     current = gameState[i][j]
@@ -367,8 +369,10 @@ def checkWin(gameState):
 
     # Check diagonal wins
     np_matrix = numpy.array(gameState)
-    diags = [np_matrix[::-1,:].diagonal(i) for i in range(-np_matrix.shape[0]+1,np_matrix.shape[1])]
-    diags.extend(np_matrix.diagonal(i) for i in range(np_matrix.shape[1]-1,-np_matrix.shape[0],-1))
+    diags = [np_matrix[::-1, :].diagonal(i)
+             for i in range(-np_matrix.shape[0]+1, np_matrix.shape[1])]
+    diags.extend(np_matrix.diagonal(i)
+                 for i in range(np_matrix.shape[1]-1, -np_matrix.shape[0], -1))
     diags_list = [n.tolist() for n in diags]
 
     for i in range(0, len(diags_list)):
@@ -415,14 +419,15 @@ def checkWin(gameState):
 # as a O and the computer as an X
 #
 
+
 def printBoard(gameState):
-    for i in range(1, BOARD_SIZE_X + 1):
+    for i in range(1, BOARD_WIDTH + 1):
         sys.stdout.write(" %d " % i)
 
     print()
-    print("_" * (BOARD_SIZE_X * 3))
-    for i in range(0, BOARD_SIZE_Y):
-        for j in range(0, BOARD_SIZE_X):
+    print("_" * (BOARD_WIDTH * 3))
+    for i in range(0, BOARD_HEIGHT):
+        for j in range(0, BOARD_WIDTH):
 
             if gameState[i][j] == 1:
                 sys.stdout.write("|X|")
@@ -433,7 +438,7 @@ def printBoard(gameState):
 
         print("")
 
-    print("_" * (BOARD_SIZE_X * 3))
+    print("_" * (BOARD_WIDTH * 3))
     print("")
 
 #
@@ -443,14 +448,16 @@ def printBoard(gameState):
 # has won.
 #
 
+
 def playGame():
-    gameState = [[0 for col in range(BOARD_SIZE_X)] for row in range(BOARD_SIZE_Y)]
-    moveHeights = [0] * BOARD_SIZE_X
+    gameState = [[0 for col in range(BOARD_WIDTH)]
+                 for row in range(BOARD_HEIGHT)]
+    moveHeights = [0] * BOARD_WIDTH
     player = COMPUTER_PLAYER
     opponent = HUMAN_PLAYER
     winner = 0
     gameOver = False
-    remainingColumns = BOARD_SIZE_X
+    remainingColumns = BOARD_WIDTH
     print("=========================")
     print("= WELCOME TO CONNECT 4! =")
     print("=========================\n")
@@ -460,22 +467,22 @@ def playGame():
 
         while True:
             try:
-                move = int(input("What is your move? (Choose from 1 to %d)"))
+                move = int(input("Player's move. \nInput a column:"))
             except ValueError:
-                print("That wasn't a number! Try again.")
+                print("Invalid input. Try again.")
                 continue
-            if move < 1 or move > BOARD_SIZE_X:
+            if move < 1 or move > BOARD_WIDTH:
                 print("That is not a valid move. Try again.")
-            elif moveHeights[move - 1] == BOARD_SIZE_Y:
+            elif moveHeights[move - 1] == BOARD_HEIGHT:
                 print("The chosen column is already full. Try again.")
             else:
                 break
 
         moveHeights[move - 1] += 1
-        gameState[BOARD_SIZE_Y - moveHeights[move - 1]][move - 1] = opponent
+        gameState[BOARD_HEIGHT - moveHeights[move - 1]][move - 1] = opponent
         printBoard(gameState)
 
-        if moveHeights[move - 1] == BOARD_SIZE_Y:
+        if moveHeights[move - 1] == BOARD_HEIGHT:
             remainingColumns -= 1
         if remainingColumns == 0:
             gameOver = True
@@ -492,16 +499,16 @@ def playGame():
         else:
             score = 0
 
-        print("Now it's the computer's turn!")
-        move = bestMove(gameState, player, opponent)
+        print("Computer's turn.")
+        move = bestMove(gameState, player, opponent, evaluateScore)
         if move == None:
             break
 
         moveHeights[move] += 1
-        gameState[BOARD_SIZE_Y - moveHeights[move]][move] = player
+        gameState[BOARD_HEIGHT - moveHeights[move]][move] = player
         printBoard(gameState)
 
-        if moveHeights[move] == BOARD_SIZE_Y:
+        if moveHeights[move] == BOARD_HEIGHT:
             remainingColumns -= 1
         if remainingColumns == 0:
             gameOver = True
@@ -530,11 +537,11 @@ if __name__ == "__main__":
     while playing:
         winner = playGame()
         if winner == COMPUTER_PLAYER:
-            print("Damn! You lost!")
+            print("Computer wins.")
         elif winner == HUMAN_PLAYER:
-            print("Congratulations! You won!")
+            print("Player wins.")
         else:
-            print("The board is full. This is a draw!")
+            print("The board is full. Tie game.")
 
         while True:
             try:
