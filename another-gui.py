@@ -21,7 +21,6 @@ remainingColumns = BOARD_WIDTH
 #
 
 
-
 def minimax(gameState, depth, player, opponent, scoreEvalAlg):
     availableMoves = BOARD_WIDTH
     for i in range(0, BOARD_WIDTH):
@@ -49,10 +48,11 @@ def minimax(gameState, depth, player, opponent, scoreEvalAlg):
                 break
             elif j == BOARD_HEIGHT - 2:
                 gameState[j+1][i] = player
-                currentMove[0] = j+1 
+                currentMove[0] = j+1
 
         # Recursive minimax call, with reduced depth
-        move, score = minimax(gameState, depth - 1, opponent, player, scoreEvalAlg)
+        move, score = minimax(gameState, depth - 1,
+                              opponent, player, scoreEvalAlg)
 
         gameState[currentMove[0]][currentMove[1]] = 0
 
@@ -72,6 +72,7 @@ def minimax(gameState, depth, player, opponent, scoreEvalAlg):
 # board state. The heuristic adds a point to a player
 # for each empty slot that could grant a player victory.
 #
+
 
 def evaluateScore(gameState, player, opponent):
     # Return infinity if a player has won in the given board
@@ -97,68 +98,69 @@ def evaluateScore(gameState, player, opponent):
 # found vertically, horizontally or in both diagonals.
 #
 
+
 def scoreOfCoordinate(gameState, i, j, player, opponent):
     score = 0
 
     # Check vertical line
     score += scoreOfLine(
-                     gameState=gameState,
-                     i=i,
-                     j=j,
-                     rowIncrement=-1,
-                     columnIncrement=0,
-                     firstRowCondition=-1,
-                     secondRowCondition=BOARD_HEIGHT,
-                     firstColumnCondition=None,
-                     secondColumnCondition=None,
-                     player=player,
-                     opponent=opponent
-                 )
+        gameState=gameState,
+        i=i,
+        j=j,
+        rowIncrement=-1,
+        columnIncrement=0,
+        firstRowCondition=-1,
+        secondRowCondition=BOARD_HEIGHT,
+        firstColumnCondition=None,
+        secondColumnCondition=None,
+        player=player,
+        opponent=opponent
+    )
 
     # Check horizontal line
     score += scoreOfLine(
-                     gameState=gameState,
-                     i=i,
-                     j=j,
-                     rowIncrement=0,
-                     columnIncrement=-1,
-                     firstRowCondition=None,
-                     secondRowCondition=None,
-                     firstColumnCondition=-1,
-                     secondColumnCondition=BOARD_WIDTH,
-                     player=player,
-                     opponent=opponent
-                 )
+        gameState=gameState,
+        i=i,
+        j=j,
+        rowIncrement=0,
+        columnIncrement=-1,
+        firstRowCondition=None,
+        secondRowCondition=None,
+        firstColumnCondition=-1,
+        secondColumnCondition=BOARD_WIDTH,
+        player=player,
+        opponent=opponent
+    )
 
     # Check diagonal /
     score += scoreOfLine(
-                     gameState=gameState,
-                     i=i,
-                     j=j,
-                     rowIncrement=-1,
-                     columnIncrement=1,
-                     firstRowCondition=-1,
-                     secondRowCondition=BOARD_HEIGHT,
-                     firstColumnCondition=BOARD_WIDTH,
-                     secondColumnCondition=-1,
-                     player=player,
-                     opponent=opponent
-                 )
+        gameState=gameState,
+        i=i,
+        j=j,
+        rowIncrement=-1,
+        columnIncrement=1,
+        firstRowCondition=-1,
+        secondRowCondition=BOARD_HEIGHT,
+        firstColumnCondition=BOARD_WIDTH,
+        secondColumnCondition=-1,
+        player=player,
+        opponent=opponent
+    )
 
     # Check diagonal \
     score += scoreOfLine(
-                     gameState=gameState,
-                     i=i,
-                     j=j,
-                     rowIncrement=-1,
-                     columnIncrement=-1,
-                     firstRowCondition=-1,
-                     secondRowCondition=BOARD_HEIGHT,
-                     firstColumnCondition=-1,
-                     secondColumnCondition=BOARD_WIDTH,
-                     player=player,
-                     opponent=opponent
-                 )
+        gameState=gameState,
+        i=i,
+        j=j,
+        rowIncrement=-1,
+        columnIncrement=-1,
+        firstRowCondition=-1,
+        secondRowCondition=BOARD_HEIGHT,
+        firstColumnCondition=-1,
+        secondColumnCondition=BOARD_WIDTH,
+        player=player,
+        opponent=opponent
+    )
 
     return score
 
@@ -166,6 +168,7 @@ def scoreOfCoordinate(gameState, i, j, player, opponent):
 # Method that searches through a line (vertical, horizontal or
 # diagonal) to get the heuristic value of the given coordinate.
 #
+
 
 def scoreOfLine(
     gameState,
@@ -251,6 +254,7 @@ def scoreOfLine(
 # if any immediate wins or loses are present.
 #
 
+
 def bestMove(gameState, player, opponent, scoreEvalAlg):
     for i in range(0, BOARD_WIDTH):
         # If moves cannot be made on column, skip it
@@ -296,13 +300,15 @@ def bestMove(gameState, player, opponent, scoreEvalAlg):
         if winner == HUMAN_PLAYER:
             return currentMove[1]
 
-    move, score = minimax(gameState, SEARCH_DEPTH, player, opponent, scoreEvalAlg)
+    move, score = minimax(gameState, SEARCH_DEPTH,
+                          player, opponent, scoreEvalAlg)
     return move[1]
 
 #
 # Method that verifies if the current board is in a winning state
 # for any player, returning infinity if that is the case.
 #
+
 
 def checkWin(gameState):
     current = 0
@@ -376,8 +382,10 @@ def checkWin(gameState):
 
     # Check diagonal wins
     np_matrix = numpy.array(gameState)
-    diags = [np_matrix[::-1,:].diagonal(i) for i in range(-np_matrix.shape[0]+1,np_matrix.shape[1])]
-    diags.extend(np_matrix.diagonal(i) for i in range(np_matrix.shape[1]-1,-np_matrix.shape[0],-1))
+    diags = [np_matrix[::-1, :].diagonal(i)
+             for i in range(-np_matrix.shape[0]+1, np_matrix.shape[1])]
+    diags.extend(np_matrix.diagonal(i)
+                 for i in range(np_matrix.shape[1]-1, -np_matrix.shape[0], -1))
     diags_list = [n.tolist() for n in diags]
 
     for i in range(0, len(diags_list)):
@@ -424,6 +432,7 @@ def checkWin(gameState):
 # as a O and the computer as an X
 #
 
+
 def printBoard(gameState):
     for i in range(1, BOARD_WIDTH + 1):
         sys.stdout.write(" %d " % i)
@@ -451,8 +460,10 @@ def printBoard(gameState):
 # has won.
 #
 
+
 def playGame():
-    gameState = [[0 for col in range(BOARD_WIDTH)] for row in range(BOARD_HEIGHT)]
+    gameState = [[0 for col in range(BOARD_WIDTH)]
+                 for row in range(BOARD_HEIGHT)]
     moveHeights = [0] * BOARD_WIDTH
     player = COMPUTER_PLAYER
     opponent = HUMAN_PLAYER
@@ -532,15 +543,22 @@ def playGame():
 def move(move, tiles, remainingColumns, winner, gameOver):
     moveHeights[move - 1] += 1
     gameState[BOARD_HEIGHT - moveHeights[move - 1]][move] = HUMAN_PLAYER
+
+    for i in range(len(gameState)):
+        print()
+        for j in range(len(gameState[i])):
+            print(gameState[i][j], " ", end='')
+
+    print("\ngameState", BOARD_HEIGHT - moveHeights[move - 1], move)
     tiles[move, BOARD_HEIGHT + moveHeights[move - 1] - 7].create_oval(10, 5, 50, 45, fill="red", outline="blue", width=1)
+   
     if moveHeights[move - 1] == BOARD_HEIGHT:
         remainingColumns -= 1
     if remainingColumns == 0:
         gameOver = True
     if gameOver:
         val = 3
-        #return
-
+        return
 
     score = checkWin(gameState)
     if score == COMPUTER_PLAYER:
@@ -553,36 +571,47 @@ def move(move, tiles, remainingColumns, winner, gameOver):
         score = 0
 
     move2 = bestMove(gameState, COMPUTER_PLAYER, HUMAN_PLAYER, evaluateScore)
+    print("computer", move2)
     if move2 == None:
         return
 
-    print(move2, "i am here")
     moveHeights[move2 - 1] += 1
-    gameState[BOARD_HEIGHT - moveHeights[move2 - 1]][move2 - 1] = COMPUTER_PLAYER
+    gameState[BOARD_HEIGHT - moveHeights[move2 - 1]][move2] = COMPUTER_PLAYER
+    #gameState[move2][(BOARD_HEIGHT - moveHeights[move2 - 1] - 5) * -1] = COMPUTER_PLAYER
     tiles[move2, BOARD_HEIGHT + moveHeights[move2 - 1] - 7].create_oval(10, 5, 50, 45, fill="yellow", outline="blue", width=1)
+    print("gameState computer", BOARD_HEIGHT - moveHeights[move2 - 1], move2)
+    print("tiles", move2, BOARD_HEIGHT + moveHeights[move2 - 1] - 7)
     #printBoard(gameState)
 
-    # if moveHeights[move2] == BOARD_HEIGHT:
-    #     remainingColumns -= 1
-    # if remainingColumns == 0:
-    #     gameOver = True
-    # if gameOver:
-    #     return
+    if moveHeights[move2] == BOARD_HEIGHT:
+        remainingColumns -= 1
+    if remainingColumns == 0:
+        gameOver = True
+    if gameOver:
+        return
 
-    # score = checkWin(gameState)
-    # if score == COMPUTER_PLAYER:
-    #     winner = COMPUTER_PLAYER
-    #     return
-    # elif score == HUMAN_PLAYER:
-    #     winner = HUMAN_PLAYER
-    #     return
-    # else:
-    #     score = 0
+    score = checkWin(gameState)
+    if score == COMPUTER_PLAYER:
+        winner = COMPUTER_PLAYER
+        return
+    elif score == HUMAN_PLAYER:
+        winner = HUMAN_PLAYER
+        return
+    else:
+        score = 0
 
 
-def reset(gameState, gameOver):
-    gameState = [[0 for col in range(BOARD_WIDTH)] for row in range(BOARD_HEIGHT)]
+def reset(gameState, gameOver, moveHeights, winner, remainingColumns):
+    gameState = [[0 for col in range(BOARD_WIDTH)]
+                 for row in range(BOARD_HEIGHT)]
     gameOver = False
+    moveHeights = [0] * 7
+    winner = 0
+    remainingColumns = 7
+    for i in range(7):
+        for j in range(6):
+            tiles[i, j].create_oval(10, 5, 50, 45, fill="black", outline="blue", width=1)
+
 
 def update(tiles, buttons):
     for i in range(len(gameState)):
@@ -620,6 +649,7 @@ tiles = {}
 
 winner = 0
 gameOver = False
+moveHeights = [0] * BOARD_WIDTH
 
 for x in range(BOARD_WIDTH):
     handler = lambda x=x: move(x, tiles, remainingColumns, winner, gameOver)  # lambda
@@ -631,7 +661,8 @@ frame.grid(row=1, column=0, columnspan=BOARD_WIDTH)
 
 for i in range(7):
     for j in range(6):
-        tile = Canvas(frame, width=60, height=50, bg="navy", highlightthickness=0)
+        tile = Canvas(frame, width=60, height=50,
+                      bg="navy", highlightthickness=0)
         val = BOARD_HEIGHT - j
         tile.grid(row=val, column=i+1)
         tiles[i, j] = tile
@@ -639,11 +670,11 @@ for i in range(7):
 for i in range(7):
     for j in range(6):
         tiles[i, j].create_oval(10, 5, 50, 45, fill="black", outline="blue", width=1)
+
+handler = lambda: reset(gameState, gameOver, moveHeights, winner, remainingColumns)
 restart = Button(app, command=handler, text='reset')
-handler = lambda: reset(gameState, gameOver)
 
 restart.grid(row=2, column=0, columnspan=BOARD_WIDTH+1, sticky="WE")
-
 
 app.mainloop()
 
