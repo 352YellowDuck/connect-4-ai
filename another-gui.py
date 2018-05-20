@@ -14,6 +14,9 @@ moveHeights = [0] * BOARD_WIDTH
 winner = 0
 gameOver = False
 remainingColumns = BOARD_WIDTH
+compTileColor = "yellow"
+playerTileColor  ="green"
+
 
 #
 # Method that runs the minimax algorithm and returns
@@ -427,6 +430,192 @@ def checkWin(gameState):
     else:
         return 0
 
+
+def move(move, tiles, remainingColumns, winner, gameOver):
+    moveHeights[move - 1] += 1
+    gameState[BOARD_HEIGHT - moveHeights[move - 1]][move] = HUMAN_PLAYER
+
+    for i in range(len(gameState)):
+        print()
+        for j in range(len(gameState[i])):
+            print(gameState[i][j], " ", end='')
+
+    print("\ngameState", BOARD_HEIGHT - moveHeights[move - 1], move)
+    tiles[move, BOARD_HEIGHT + moveHeights[move - 1] - 7].create_oval(10, 5, 50, 45, fill= playerTileColor, outline="blue", width=1)
+   
+    if moveHeights[move - 1] == BOARD_HEIGHT:
+        remainingColumns -= 1
+    if remainingColumns == 0:
+        gameOver = True
+    if gameOver:
+        val = 3
+        return
+
+    score = checkWin(gameState)
+    if score == COMPUTER_PLAYER:
+        winner = COMPUTER_PLAYER
+        return
+    elif score == HUMAN_PLAYER:
+        winner = HUMAN_PLAYER
+        return
+    else:
+        score = 0
+
+           
+    move2 = bestMove(gameState, COMPUTER_PLAYER, HUMAN_PLAYER, evaluateScore)
+    print("computer", move2)
+    if move2 == None:
+        return
+
+    moveHeights[move2 - 1] += 1
+    gameState[BOARD_HEIGHT - moveHeights[move2 - 1]][move2] = COMPUTER_PLAYER
+    #gameState[move2][(BOARD_HEIGHT - moveHeights[move2 - 1] - 5) * -1] = COMPUTER_PLAYER
+    tiles[move2, BOARD_HEIGHT + moveHeights[move2 - 1] - 7].create_oval(10, 5, 50, 45, fill= compTileColor, outline="blue", width=1)
+    print("gameState computer", BOARD_HEIGHT - moveHeights[move2 - 1], move2)
+    print("tiles", move2, BOARD_HEIGHT + moveHeights[move2 - 1] - 7)
+    #printBoard(gameState)
+
+    if moveHeights[move2] == BOARD_HEIGHT:
+        remainingColumns -= 1
+    if remainingColumns == 0:
+        gameOver = True
+    if gameOver:
+        return
+
+    score = checkWin(gameState)
+    if score == COMPUTER_PLAYER:
+        winner = COMPUTER_PLAYER
+        return
+    elif score == HUMAN_PLAYER:
+        winner = HUMAN_PLAYER
+        return
+    else:
+        score = 0
+
+
+def reset():
+    global gameState
+    global gameOver
+    global moveHeights
+    global winner
+    global remainingColumns
+    gameState = [[0 for col in range(BOARD_WIDTH)]
+                 for row in range(BOARD_HEIGHT)]
+
+    gameOver = False
+    moveHeights = [0] * 7
+    winner = 0
+    remainingColumns = 7
+    for i in range(7):
+        for j in range(6):
+            tiles[i, j].create_oval(10, 5, 50, 45, fill="black", outline="blue", width=1)
+
+
+def update(tiles, buttons):
+    for i in range(len(gameState)):
+        for j in range(len(gameState[i])):
+            text = gameState[i][j]
+            if (text == 0):
+                tiles[i, j].create_oval(
+                    10, 5, 50, 45, fill="black", outline="blue", width=1)
+            if (text == 1):
+                tiles[i, j].create_oval(
+                    10, 5, 50, 45, fill= compTileColor, outline="blue", width=1)
+            if (text == -1):
+                tiles[i, j].create_oval(
+                    10, 5, 50, 45, fill= playerTileColor, outline="blue", width=1)
+
+    for x in range(BOARD_WIDTH):
+        buttons[x]['state'] = 'normal'
+
+    for i in range(len(gameState)):
+        for j in range(len(gameState[i])):
+            tiles[i, j].create_oval(25, 20, 35, 30, fill="black")
+
+    for x in range(BOARD_WIDTH):
+            buttons[x]['state'] = 'disabled'
+
+
+#********************GUI***********************
+app = Tk()
+app.title("Connect4")
+termf = Frame(app)
+wid = termf.winfo_id()
+
+buttons = {}
+frame = Frame(app, borderwidth=1, relief="raised")
+tiles = {}
+
+winner = 0
+gameOver = False
+moveHeights = [0] * BOARD_WIDTH
+
+for x in range(BOARD_WIDTH):
+    handler = lambda x=x: move(x, tiles, remainingColumns, winner, gameOver)  # lambda
+    button = Button(app, command=handler, font=font.Font(family="Helvetica", size=14), text=x+1)
+    button.grid(row=0, column=x, sticky="WE")
+    buttons[x] = button
+
+frame.grid(row=1, column=0, columnspan=BOARD_WIDTH)
+
+for i in range(7):
+    for j in range(6):
+        tile = Canvas(frame, width=60, height=50,
+                      bg="navy", highlightthickness=0)
+        val = BOARD_HEIGHT - j
+        tile.grid(row=val, column=i+1)
+        tiles[i, j] = tile
+
+
+for i in range(7):
+    for j in range(6):
+        tiles[i, j].create_oval(10, 5, 50, 45, fill="black", outline="blue", width=1)
+
+ 
+handler = lambda: reset()
+restart = Button(app, command=handler, text='reset')
+    
+
+restart.grid(row=2, column=0, columnspan=BOARD_WIDTH+1, sticky="WE")
+
+app.mainloop()
+
+
+#====================================================================================================================================#
+#======================================================CONSOLE GAME CODE=============================================================#
+#====================================================================================================================================#
+
+
+#
+# Main execution of the game. Plays the game until the user
+# wishes to stop.
+#
+
+if __name__ == "__main__":
+    playing = False
+    while playing:
+        winner = playGame()
+        if winner == COMPUTER_PLAYER:
+            print("Player lost.")
+        elif winner == HUMAN_PLAYER:
+            print("Player wins.")
+        else:
+            print("The board is full. Tie game.")
+
+        while True:
+            try:
+                option = input("Do you want to play again? (Y/N)")
+            except ValueError:
+                print("Please input a correct value. Try again.")
+                continue
+            if option == 'Y' or option == 'y':
+                break
+            elif option == 'N' or option == 'n':
+                playing = False
+                break
+            else:
+                print("Enter Y or N.")
+
 #
 # Function that prints the game board, representing the player
 # as a O and the computer as an X
@@ -540,170 +729,3 @@ def playGame():
     return winner
 
 
-def move(move, tiles, remainingColumns, winner, gameOver):
-    moveHeights[move - 1] += 1
-    gameState[BOARD_HEIGHT - moveHeights[move - 1]][move] = HUMAN_PLAYER
-
-    for i in range(len(gameState)):
-        print()
-        for j in range(len(gameState[i])):
-            print(gameState[i][j], " ", end='')
-
-    print("\ngameState", BOARD_HEIGHT - moveHeights[move - 1], move)
-    tiles[move, BOARD_HEIGHT + moveHeights[move - 1] - 7].create_oval(10, 5, 50, 45, fill="red", outline="blue", width=1)
-   
-    if moveHeights[move - 1] == BOARD_HEIGHT:
-        remainingColumns -= 1
-    if remainingColumns == 0:
-        gameOver = True
-    if gameOver:
-        val = 3
-        return
-
-    score = checkWin(gameState)
-    if score == COMPUTER_PLAYER:
-        winner = COMPUTER_PLAYER
-        return
-    elif score == HUMAN_PLAYER:
-        winner = HUMAN_PLAYER
-        return
-    else:
-        score = 0
-
-    move2 = bestMove(gameState, COMPUTER_PLAYER, HUMAN_PLAYER, evaluateScore)
-    print("computer", move2)
-    if move2 == None:
-        return
-
-    moveHeights[move2 - 1] += 1
-    gameState[BOARD_HEIGHT - moveHeights[move2 - 1]][move2] = COMPUTER_PLAYER
-    #gameState[move2][(BOARD_HEIGHT - moveHeights[move2 - 1] - 5) * -1] = COMPUTER_PLAYER
-    tiles[move2, BOARD_HEIGHT + moveHeights[move2 - 1] - 7].create_oval(10, 5, 50, 45, fill="yellow", outline="blue", width=1)
-    print("gameState computer", BOARD_HEIGHT - moveHeights[move2 - 1], move2)
-    print("tiles", move2, BOARD_HEIGHT + moveHeights[move2 - 1] - 7)
-    #printBoard(gameState)
-
-    if moveHeights[move2] == BOARD_HEIGHT:
-        remainingColumns -= 1
-    if remainingColumns == 0:
-        gameOver = True
-    if gameOver:
-        return
-
-    score = checkWin(gameState)
-    if score == COMPUTER_PLAYER:
-        winner = COMPUTER_PLAYER
-        return
-    elif score == HUMAN_PLAYER:
-        winner = HUMAN_PLAYER
-        return
-    else:
-        score = 0
-
-
-def reset(gameState, gameOver, moveHeights, winner, remainingColumns):
-    gameState = [[0 for col in range(BOARD_WIDTH)]
-                 for row in range(BOARD_HEIGHT)]
-    gameOver = False
-    moveHeights = [0] * 7
-    winner = 0
-    remainingColumns = 7
-    for i in range(7):
-        for j in range(6):
-            tiles[i, j].create_oval(10, 5, 50, 45, fill="black", outline="blue", width=1)
-
-
-def update(tiles, buttons):
-    for i in range(len(gameState)):
-        for j in range(len(gameState[i])):
-            text = gameState[i][j]
-            if (text == 0):
-                tiles[i, j].create_oval(
-                    10, 5, 50, 45, fill="black", outline="blue", width=1)
-            if (text == 1):
-                tiles[i, j].create_oval(
-                    10, 5, 50, 45, fill="yellow", outline="blue", width=1)
-            if (text == -1):
-                tiles[i, j].create_oval(
-                    10, 5, 50, 45, fill="red", outline="blue", width=1)
-
-    for x in range(BOARD_WIDTH):
-        buttons[x]['state'] = 'normal'
-
-    for i in range(len(gameState)):
-        for j in range(len(gameState[i])):
-            tiles[i, j].create_oval(25, 20, 35, 30, fill="black")
-
-    for x in range(BOARD_WIDTH):
-            buttons[x]['state'] = 'disabled'
-
-
-app = Tk()
-app.title("Connect4")
-termf = Frame(app)
-wid = termf.winfo_id()
-
-buttons = {}
-frame = Frame(app, borderwidth=1, relief="raised")
-tiles = {}
-
-winner = 0
-gameOver = False
-moveHeights = [0] * BOARD_WIDTH
-
-for x in range(BOARD_WIDTH):
-    handler = lambda x=x: move(x, tiles, remainingColumns, winner, gameOver)  # lambda
-    button = Button(app, command=handler, font=font.Font(family="Helvetica", size=14), text=x+1)
-    button.grid(row=0, column=x, sticky="WE")
-    buttons[x] = button
-
-frame.grid(row=1, column=0, columnspan=BOARD_WIDTH)
-
-for i in range(7):
-    for j in range(6):
-        tile = Canvas(frame, width=60, height=50,
-                      bg="navy", highlightthickness=0)
-        val = BOARD_HEIGHT - j
-        tile.grid(row=val, column=i+1)
-        tiles[i, j] = tile
-
-for i in range(7):
-    for j in range(6):
-        tiles[i, j].create_oval(10, 5, 50, 45, fill="black", outline="blue", width=1)
-
-handler = lambda: reset(gameState, gameOver, moveHeights, winner, remainingColumns)
-restart = Button(app, command=handler, text='reset')
-
-restart.grid(row=2, column=0, columnspan=BOARD_WIDTH+1, sticky="WE")
-
-app.mainloop()
-
-#
-# Main execution of the game. Plays the game until the user
-# wishes to stop.
-#
-
-if __name__ == "__main__":
-    playing = False
-    while playing:
-        winner = playGame()
-        if winner == COMPUTER_PLAYER:
-            print("Player lost.")
-        elif winner == HUMAN_PLAYER:
-            print("Player wins.")
-        else:
-            print("The board is full. Tie game.")
-
-        while True:
-            try:
-                option = input("Do you want to play again? (Y/N)")
-            except ValueError:
-                print("Please input a correct value. Try again.")
-                continue
-            if option == 'Y' or option == 'y':
-                break
-            elif option == 'N' or option == 'n':
-                playing = False
-                break
-            else:
-                print("Enter Y or N.")
