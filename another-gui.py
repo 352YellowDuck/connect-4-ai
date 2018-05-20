@@ -1,6 +1,6 @@
 import sys
 import numpy
-from tkinter import Tk, Button, Frame, Canvas, font
+from tkinter import Tk, Button, Frame, Canvas, font, messagebox
 
 BOARD_WIDTH = 7
 BOARD_HEIGHT = 6
@@ -485,9 +485,15 @@ def move(move, tiles, remainingColumns, winner, gameOver):
     score = checkWin(gameState)
     if score == COMPUTER_PLAYER:
         winner = COMPUTER_PLAYER
+        messagebox.showinfo("Message", "COMPUTER WIIIN")
+        print("COMPUTER WIN")
+        reset()
         return
     elif score == HUMAN_PLAYER:
         winner = HUMAN_PLAYER
+        messagebox.showinf("Message", "Human WIN!")
+        print("HUMAN WIIIIN")
+        reset()
         return
     else:
         score = 0
