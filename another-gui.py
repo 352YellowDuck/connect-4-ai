@@ -434,13 +434,6 @@ def checkWin(gameState):
 def move(move, tiles, remainingColumns, winner, gameOver):
     moveHeights[move - 1] += 1
     gameState[BOARD_HEIGHT - moveHeights[move - 1]][move] = HUMAN_PLAYER
-
-    for i in range(len(gameState)):
-        print()
-        for j in range(len(gameState[i])):
-            print(gameState[i][j], " ", end='')
-
-    print("\ngameState", BOARD_HEIGHT - moveHeights[move - 1], move)
     tiles[move, BOARD_HEIGHT + moveHeights[move - 1] - 7].create_oval(10, 5, 50, 45, fill= playerTileColor, outline="blue", width=1)
    
     if moveHeights[move - 1] == BOARD_HEIGHT:
@@ -448,7 +441,6 @@ def move(move, tiles, remainingColumns, winner, gameOver):
     if remainingColumns == 0:
         gameOver = True
     if gameOver:
-        val = 3
         return
 
     score = checkWin(gameState)
@@ -457,25 +449,20 @@ def move(move, tiles, remainingColumns, winner, gameOver):
         return
     elif score == HUMAN_PLAYER:
         winner = HUMAN_PLAYER
+        messagebox.showinfo("Message", "Player wins")
         return
     else:
         score = 0
 
-           
-    move2 = bestMove(gameState, COMPUTER_PLAYER, HUMAN_PLAYER, evaluateScore)
-    print("computer", move2)
-    if move2 == None:
+    aiMove = bestMove(gameState, COMPUTER_PLAYER, HUMAN_PLAYER, evaluateScore)
+    if aiMove == None:
         return
 
-    moveHeights[move2 - 1] += 1
-    gameState[BOARD_HEIGHT - moveHeights[move2 - 1]][move2] = COMPUTER_PLAYER
-    #gameState[move2][(BOARD_HEIGHT - moveHeights[move2 - 1] - 5) * -1] = COMPUTER_PLAYER
-    tiles[move2, BOARD_HEIGHT + moveHeights[move2 - 1] - 7].create_oval(10, 5, 50, 45, fill= compTileColor, outline="blue", width=1)
-    print("gameState computer", BOARD_HEIGHT - moveHeights[move2 - 1], move2)
-    print("tiles", move2, BOARD_HEIGHT + moveHeights[move2 - 1] - 7)
-    #printBoard(gameState)
+    moveHeights[aiMove - 1] += 1
+    gameState[BOARD_HEIGHT - moveHeights[aiMove - 1]][aiMove] = COMPUTER_PLAYER
+    tiles[aiMove, BOARD_HEIGHT + moveHeights[aiMove - 1] - 7].create_oval(10, 5, 50, 45, fill= compTileColor, outline="blue", width=1)
 
-    if moveHeights[move2] == BOARD_HEIGHT:
+    if moveHeights[aiMove] == BOARD_HEIGHT:
         remainingColumns -= 1
     if remainingColumns == 0:
         gameOver = True
@@ -483,21 +470,16 @@ def move(move, tiles, remainingColumns, winner, gameOver):
         return
 
     score = checkWin(gameState)
+    print(score)
     if score == COMPUTER_PLAYER:
         winner = COMPUTER_PLAYER
-        messagebox.showinfo("Message", "COMPUTER WIIIN")
-        print("COMPUTER WIN")
-        reset()
+        messagebox.showinfo("Message", "Computer wins")
         return
     elif score == HUMAN_PLAYER:
         winner = HUMAN_PLAYER
-        messagebox.showinf("Message", "Human WIN!")
-        print("HUMAN WIIIIN")
-        reset()
         return
     else:
         score = 0
-
 
 def reset():
     global gameState
@@ -505,8 +487,7 @@ def reset():
     global moveHeights
     global winner
     global remainingColumns
-    gameState = [[0 for col in range(BOARD_WIDTH)]
-                 for row in range(BOARD_HEIGHT)]
+    gameState = [[0 for col in range(BOARD_WIDTH)] for row in range(BOARD_HEIGHT)]
 
     gameOver = False
     moveHeights = [0] * 7
@@ -515,32 +496,6 @@ def reset():
     for i in range(7):
         for j in range(6):
             tiles[i, j].create_oval(10, 5, 50, 45, fill="black", outline="blue", width=1)
-
-
-def update(tiles, buttons):
-    for i in range(len(gameState)):
-        for j in range(len(gameState[i])):
-            text = gameState[i][j]
-            if (text == 0):
-                tiles[i, j].create_oval(
-                    10, 5, 50, 45, fill="black", outline="blue", width=1)
-            if (text == 1):
-                tiles[i, j].create_oval(
-                    10, 5, 50, 45, fill= compTileColor, outline="blue", width=1)
-            if (text == -1):
-                tiles[i, j].create_oval(
-                    10, 5, 50, 45, fill= playerTileColor, outline="blue", width=1)
-
-    for x in range(BOARD_WIDTH):
-        buttons[x]['state'] = 'normal'
-
-    for i in range(len(gameState)):
-        for j in range(len(gameState[i])):
-            tiles[i, j].create_oval(25, 20, 35, 30, fill="black")
-
-    for x in range(BOARD_WIDTH):
-            buttons[x]['state'] = 'disabled'
-
 
 #********************GUI***********************
 app = Tk()
