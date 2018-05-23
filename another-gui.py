@@ -450,6 +450,7 @@ def move(move, tiles, remainingColumns, winner, gameOver):
     elif score == HUMAN_PLAYER:
         winner = HUMAN_PLAYER
         messagebox.showinfo("Message", "Player wins")
+        reset()
         return
     else:
         score = 0
@@ -474,6 +475,7 @@ def move(move, tiles, remainingColumns, winner, gameOver):
     if score == COMPUTER_PLAYER:
         winner = COMPUTER_PLAYER
         messagebox.showinfo("Message", "Computer wins")
+        reset()
         return
     elif score == HUMAN_PLAYER:
         winner = HUMAN_PLAYER
